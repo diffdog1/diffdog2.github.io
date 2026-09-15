@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Price Check — Daily CS2 Skin Price Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e15;
+    --bg-radial: radial-gradient(ellipse 900px 500px at 50% -10%, #16202f 0%, #0a0e15 55%);
+    --surface:#121824;
+    --surface-2:#19212f;
+    --border:#242e3d;
+    --border-soft:#1b2432;
+    --text:#eef1f6;
+    --muted:#8996a8;
+    --muted-2:#5f6b7d;
+    --gold:#f0b90b;
+    --gold-soft:rgba(240,185,11,0.14);
+    --danger:#eb4b4b;
+    --good:#4fd68c;
+    --radius:16px;
+    --radius-sm:10px;
+    --maxw:560px;
+    --font-display:'Rajdhani', 'Inter', sans-serif;
+    --font-body:'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg-radial);
+    background-color:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:64px;
+  }
+  a{color:var(--gold);}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 18px;}
+
+  /* Topbar */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 0 8px;
+  }
+  .brand{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:0.02em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .brand .tag{
+    color:var(--bg);
+    background:var(--gold);
+    font-size:11px;
+    font-weight:700;
+    padding:2px 7px;
+    border-radius:5px;
+    font-family:var(--font-body);
+    letter-spacing:0.03em;
+  }
+  .streak{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:6px 12px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .streak b{color:var(--text);font-family:var(--font-display);font-size:16px;}
+
+  /* Hero */
+  .hero{padding:18px 0 22px;}
+  .hero h1{
+    font-family:var(--font-display);
+    font-size:34px;
+    line-height:1.05;
+    margin:0 0 8px;
+    font-weight:700;
+  }
+  .hero p{
+    margin:0;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.5;
+    max-width:44ch;
+  }
+  .hero .day-label{
+    display:inline-block;
+    font-size:12px;
+    color:var(--muted-2);
+    letter-spacing:0.04em;
+    margin-bottom:10px;
+  }
+
+  /* Progress dots */
+  .dots{display:flex;gap:7px;justify-content:center;margin-bottom:18px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .25s, transform .25s;}
+  .dot.done{background:var(--gold);}
+  .dot.current{background:var(--text);transform:scale(1.3);}
+
+  /* Card */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .spotlight{
+    position:relative;
+    height:200px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:6px;
+    border-radius:var(--radius-sm);
+    background:var(--surface-2);
+    overflow:hidden;
+  }
+  .spotlight .glow{
+    position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 55%, var(--glow-color, #46536633) 0%, transparent 62%);
+    transition:background 0.5s ease;
+  }
+  .spotlight img{
+    position:relative;
+    max-width:82%;
+    max-height:78%;
+    object-fit:contain;
+    filter:drop-shadow(0 8px 22px rgba(0,0,0,0.55));
+  }
+  .spotlight .fallback{
+    position:relative;
+    font-family:var(--font-display);
+    font-size:15px;
+    color:var(--muted-2);
+    text-align:center;
+    padding:0 20px;
+  }
+  .spotlight .skeleton{
+    position:relative;
+    width:64%;height:64%;
+    border-radius:8px;
+    background:linear-gradient(100deg, var(--surface) 30%, #222c3b 50%, var(--surface) 70%);
+    background-size:200% 100%;
+    animation:shimmer 1.4s infinite;
+  }
+  @keyframes shimmer{
+    0%{background-position:200% 0;}
+    100%{background-position:-200% 0;}
+  }
+  .spotlight .placeholder{
+    position:relative;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:6px;
+    text-align:center;
+  }
+  .spotlight .placeholder .glyph{
+    font-family:var(--font-display);
+    font-size:34px;
+    font-weight:700;
+    color:var(--muted);
+    letter-spacing:0.04em;
+  }
+  .spotlight .placeholder .note{
+    font-size:11px;
+    color:var(--muted-2);
+    max-width:220px;
+  }
+
+  .item-meta{text-align:center;margin:14px 0 20px;}
+  .item-name{
+    font-family:var(--font-display);
+    font-size:21px;
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .item-wear{
+    color:var(--muted);
+    font-size:13px;
+    letter-spacing:0.02em;
+  }
+  .rarity-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;font-weight:600;
+    padding:3px 10px;border-radius:999px;
+    margin-top:8px;
+    border:1px solid var(--rarity-color, var(--border));
+    color:var(--rarity-color, var(--muted));
+  }
+  .rarity-pill .sw{width:7px;height:7px;border-radius:50%;background:var(--rarity-color, var(--muted));}
+
+  /* Guess form */
+  .guess-row{
+    display:flex;align-items:stretch;gap:0;
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    overflow:hidden;
+    background:var(--bg);
+  }
+  .guess-row .prefix{
+    display:flex;align-items:center;
+    padding:0 14px;
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:18px;
+    color:var(--muted);
+    background:var(--surface-2);
+    border-right:1px solid var(--border);
+  }
+  .guess-row input{
+    flex:1;
+    border:none;
+    outline:none;
+    background:transparent;
+    color:var(--text);
+    font-family:var(--font-display);
+    font-size:20px;
+    font-weight:600;
+    padding:0 14px;
+    min-width:0;
+  }
+  .guess-row input::placeholder{color:var(--muted-2);}
+  .guess-row input:focus-visible{box-shadow:inset 0 0 0 2px var(--gold);}
+  .lock-btn{
+    border:none;
+    background:var(--gold);
+    color:#191203;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.02em;
+    padding:0 20px;
+    cursor:pointer;
+    transition:filter .15s, transform .1s;
+  }
+  .lock-btn:hover{filter:brightness(1.08);}
+  .lock-btn:active{transform:scale(0.97);}
+  .lock-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .lock-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px;}
+
+  .hint-row{
+    display:flex;justify-content:space-between;
+    margin-top:8px;
+    font-size:12px;
+    color:var(--muted-2);
+  }
+
+  /* Reveal */
+  .reveal{margin-top:20px;}
+  .reveal-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;
+    margin-bottom:16px;
+  }
+  .reveal-box{
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+  }
+  .reveal-box .label{font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;}
+  .reveal-box .value{font-family:var(--font-display);font-size:20px;font-weight:700;}
+  .reveal-box.actual .value{color:var(--gold);}
+  .delta-line{
+    text-align:center;
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:14px;
+  }
+  .delta-line b{color:var(--text);}
+  .score-banner{
+    text-align:center;
+    padding:14px;
+    border-radius:var(--radius-sm);
+    background:var(--gold-soft);
+    border:1px solid rgba(240,185,11,0.35);
+    margin-bottom:16px;
+  }
+  .score-banner .pts{
+    font-family:var(--font-display);
+    font-size:28px;
+    font-weight:700;
+    color:var(--gold);
+  }
+  .score-banner .pts-label{font-size:12px;color:var(--muted);margin-top:2px;}
+  .next-btn{
+    width:100%;
+    border:none;
+    background:var(--text);
+    color:#0a0e15;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:16px;
+    padding:13px;
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+    transition:filter .15s, transform .1s;
+  }
+  .next-btn:hover{filter:brightness(0.92);}
+  .next-btn:active{transform:scale(0.98);}
+  .next-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  /* Summary */
+  .summary-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:26px 22px;
+    text-align:center;
+  }
+  .summary-card h2{
+    font-family:var(--font-display);
+    font-size:24px;
+    margin:0 0 4px;
+  }
+  .summary-card .sub{color:var(--muted);font-size:13px;margin-bottom:18px;}
+  .total-score{
+    font-family:var(--font-display);
+    font-size:56px;
+    font-weight:700;
+    color:var(--gold);
+    line-height:1;
+  }
+  .total-score span{font-size:22px;color:var(--muted-2);font-weight:600;}
+  .breakdown{
+    display:flex;flex-direction:column;gap:8px;
+    margin:22px 0;
+    text-align:left;
+  }
+  .breakdown-row{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface-2);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+    font-size:13px;
+  }
+  .breakdown-row .rname{flex:1;color:var(--text);font-weight:500;}
+  .breakdown-row .rprice{color:var(--muted);font-size:12px;}
+  .breakdown-row .rscore{
+    font-family:var(--font-display);
+    font-weight:700;
+    color:var(--gold);
+    min-width:44px;
+    text-align:right;
+  }
+  .grade-emoji{font-size:16px;}
+  .share-btn{
+    width:100%;
+    border:none;
+    background:var(--gold);
+    color:#191203;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:16px;
+    padding:14px;
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .share-btn:hover{filter:brightness(1.06);}
+  .share-btn:focus-visible{outline:2px solid var(--text);outline-offset:2px;}
+  .countdown-line{font-size:12px;color:var(--muted-2);}
+  .countdown-line b{color:var(--muted);font-variant-numeric:tabular-nums;}
+
+  /* About / FAQ */
+  .about{margin-top:34px;}
+  .about h2{
+    font-family:var(--font-display);
+    font-size:20px;
+    margin-bottom:12px;
+  }
+  details{
+    border-bottom:1px solid var(--border-soft);
+    padding:14px 0;
+  }
+  details summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:14.5px;
+    list-style:none;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  details summary::-webkit-details-marker{display:none;}
+  details summary::after{
+    content:'+';
+    font-family:var(--font-display);
+    font-size:20px;
+    color:var(--muted);
+  }
+  details[open] summary::after{content:'−';}
+  details p{
+    color:var(--muted);
+    font-size:13.5px;
+    line-height:1.6;
+    margin:10px 0 0;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:36px;
+    color:var(--muted-2);
+    font-size:12px;
+    line-height:1.7;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .skeleton{animation:none;}
+    *{transition:none !important;}
+  }
+
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">PRICE<span class="tag">CHECK</span></div>
+    <div class="streak">🔥 <b id="streakCount">0</b></div>
+  </div>
+
+  <div class="hero">
+    <span class="day-label" id="dayLabel">DAILY CHALLENGE</span>
+    <h1>What's it worth?</h1>
+    <p>Five Counter-Strike 2 skins. Guess each market price as closely as you can. New skins every day.</p>
+  </div>
+
+  <div class="dots" id="dots"></div>
+
+  <!-- Game card -->
+  <div class="card" id="gameCard">
+    <div class="spotlight">
+      <div class="glow" id="glow"></div>
+      <div class="skeleton" id="skeleton"></div>
+      <div class="placeholder" id="placeholder" hidden>
+        <div class="glyph" id="placeholderGlyph">?</div>
+        <div class="note">Image unavailable in this preview — guess by name and wear</div>
+      </div>
+      <img id="skinImg" alt="" hidden />
+    </div>
+
+    <div class="item-meta">
+      <div class="item-name" id="itemName">&nbsp;</div>
+      <div class="item-wear" id="itemWear">&nbsp;</div>
+      <div id="rarityPillWrap"></div>
+    </div>
+
+    <form id="guessForm">
+      <div class="guess-row">
+        <span class="prefix">$</span>
+        <input type="number" inputmode="decimal" id="guessInput" min="0" step="0.01" placeholder="0.00" autocomplete="off" required />
+        <button type="submit" class="lock-btn" id="lockBtn">Lock In</button>
+      </div>
+      <div class="hint-row">
+        <span id="roundLabel">Round 1 of 5</span>
+        <span>Closer guesses score higher</span>
+      </div>
+    </form>
+
+    <div class="reveal" id="revealBox" hidden>
+      <div class="score-banner">
+        <div class="pts"><span id="roundScore">0</span> / 100</div>
+        <div class="pts-label">points this round</div>
+      </div>
+      <div class="reveal-grid">
+        <div class="reveal-box">
+          <div class="label">Your guess</div>
+          <div class="value" id="yourGuessVal">$0</div>
+        </div>
+        <div class="reveal-box actual">
+          <div class="label">Actual price</div>
+          <div class="value" id="actualVal">$0</div>
+        </div>
+      </div>
+      <button class="next-btn" id="nextBtn">Next skin →</button>
+    </div>
+  </div>
+
+  <!-- Summary card -->
+  <div class="summary-card" id="summaryCard" hidden>
+    <h2>Today's score</h2>
+    <div class="sub" id="summarySub">Day #1</div>
+    <div class="total-score"><span id="totalScore">0</span><span>/500</span></div>
+    <div class="breakdown" id="breakdownList"></div>
+    <button class="share-btn" id="shareBtn">Share result</button>
+    <div class="countdown-line">Next challenge in <b id="countdown">--:--:--</b></div>
+  </div>
+
+  <div class="about">
+    <h2>About Price Check</h2>
+    <details>
+      <summary>What is Price Check?</summary>
+      <p>Price Check is a daily guessing game for Counter-Strike 2 players. Each day brings five skins — you look at the item and guess what it's actually worth on the market. The closer your guess, the more points you score, up to 100 per round and 500 for the day.</p>
+    </details>
+    <details>
+      <summary>How is it scored?</summary>
+      <p>Scoring is based on how close your guess is as a ratio to the real price, not a flat dollar difference — so guessing $40 on a $50 skin scores the same as guessing $400 on a $500 one. Exact or near-exact guesses score close to 100; wildly off guesses score close to 0.</p>
+    </details>
+    <details>
+      <summary>Where do the images and prices come from?</summary>
+      <p>Item images are pulled from the public Counter-Strike 2 item schema, the same in-game icons you'd see on CSFloat and every other marketplace. Prices are a hand-curated snapshot of real recent market values rather than a second-by-second live feed, since a live marketplace price requires an authenticated API connection that can't safely run from a public browser page. Actual live prices move constantly and may differ from what's shown here.</p>
+    </details>
+    <details>
+      <summary>Why can't I sign in with my CSFloat account?</summary>
+      <p>Price Check doesn't connect to any trading account, and it never asks for one. It's a standalone guessing game, not a marketplace.</p>
+    </details>
+  </div>
+
+  <footer>
+    Skin images courtesy of the public CS2 item schema. Prices are approximate snapshots, not live marketplace data.<br />
+    Not affiliated with Valve, CSFloat, or any marketplace.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+
+  // ---------- Curated skin pool: [name (no wear), wear, price USD] ----------
+  // Prices are hand-curated approximate market snapshots — see About section.
+  const POOL = [
+    ["Nova | Predator", "Field-Tested", 2.20],
+    ["MAC-10 | Neon Rider", "Field-Tested", 8.50],
+    ["Galil AR | Chatterbox", "Field-Tested", 10.00],
+    ["Five-SeveN | Case Hardened", "Field-Tested", 14.50],
+    ["Sawed-Off | The Kraken", "Field-Tested", 18.00],
+    ["M4A4 | Neo-Noir", "Field-Tested", 27.00],
+    ["AK-47 | Redline", "Field-Tested", 29.00],
+    ["M4A1-S | Hyper Beast", "Field-Tested", 35.00],
+    ["AK-47 | Wasteland Rebel", "Field-Tested", 40.00],
+    ["AWP | Lightning Strike", "Factory New", 45.00],
+    ["AK-47 | Bloodsport", "Field-Tested", 46.00],
+    ["AWP | Neo-Noir", "Field-Tested", 65.00],
+    ["AK-47 | Vulcan", "Field-Tested", 76.00],
+    ["AWP | Asiimov", "Field-Tested", 85.00],
+    ["USP-S | Kill Confirmed", "Minimal Wear", 92.00],
+    ["UMP-45 | Blaze", "Factory New", 170.00],
+    ["Desert Eagle | Blaze", "Factory New", 400.00],
+    ["Glock-18 | Fade", "Factory New", 430.00],
+    ["AK-47 | Fire Serpent", "Field-Tested", 650.00],
+    ["M4A4 | Howl", "Field-Tested", 2100.00],
+    ["AWP | Dragon Lore", "Field-Tested", 8200.00],
+  ];
+
+  const SCHEMA_URLS = [
+    "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins.json",
+    "https://cdn.jsdelivr.net/gh/ByMykel/CSGO-API@main/public/api/en/skins.json"
+  ];
+  const ROUNDS = 5;
+  const STORAGE_STATS_KEY = "pricecheck-stats";
+  const EPOCH = Date.UTC(2026, 0, 1); // day-count anchor
+
+  // ---------- deterministic date-seeded RNG ----------
+  function utcDateKey(d){
+    return d.getUTCFullYear() + "-" + String(d.getUTCMonth()+1).padStart(2,"0") + "-" + String(d.getUTCDate()).padStart(2,"0");
+  }
+  function hashStr(s){
+    let h = 1779033703 ^ s.length;
+    for (let i=0;i<s.length;i++){
+      h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function(){
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      h ^= h >>> 16;
+      return h >>> 0;
+    };
+  }
+  function mulberry32(seed){
+    return function(){
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const now = new Date();
+  const dateKey = utcDateKey(now);
+  const dayIndex = Math.floor((Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - EPOCH) / 86400000);
+  const seedFn = hashStr(dateKey);
+  const rand = mulberry32(seedFn());
+
+  function pickDaily(){
+    const idxs = POOL.map((_,i)=>i);
+    // Fisher-Yates with seeded rand
+    for (let i = idxs.length-1;i>0;i--){
+      const j = Math.floor(rand()*(i+1));
+      [idxs[i],idxs[j]] = [idxs[j],idxs[i]];
+    }
+    return idxs.slice(0, ROUNDS).map(i => POOL[i]);
+  }
+
+  const todaysRounds = pickDaily().map(([name, wear, price]) => ({name, wear, price, image:null, rarityName:null, rarityColor:null}));
+
+  // ---------- fetch schema for images/rarity (best-effort, tries mirrors in turn) ----------
+  let schemaMap = null;
+  let imagesUnavailable = false;
+
+  function fetchWithTimeout(url, ms){
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, {signal: ctrl.signal}).finally(() => clearTimeout(t));
+  }
+
+  async function loadSchema(){
+    for (const url of SCHEMA_URLS){
+      try{
+        const r = await fetchWithTimeout(url, 9000);
+        if (!r.ok) continue;
+        const list = await r.json();
+        schemaMap = new Map();
+        list.forEach(item => { if (item && item.name) schemaMap.set(item.name, item); });
+        todaysRounds.forEach(r2 => {
+          const hit = schemaMap.get(r2.name);
+          if (hit){
+            r2.image = hit.image || null;
+            r2.rarityName = hit.rarity ? hit.rarity.name : null;
+            r2.rarityColor = hit.rarity ? hit.rarity.color : null;
+          }
+        });
+        return true;
+      }catch(e){ /* try next mirror */ }
+    }
+    return false;
+  }
+
+  loadSchema().then(ok => {
+    imagesUnavailable = !ok;
+    if (state.round < ROUNDS) renderRound();
+  });
+
+  // ---------- storage helpers ----------
+  async function loadStats(){
+    try{
+      const res = await window.storage.get(STORAGE_STATS_KEY, false);
+      return res ? JSON.parse(res.value) : {streak:0, maxStreak:0, lastCompletedDay:null, lastCompletedScore:null, history:{}};
+    }catch(e){ return {streak:0, maxStreak:0, lastCompletedDay:null, lastCompletedScore:null, history:{}}; }
+  }
+  async function saveStats(stats){
+    try{ await window.storage.set(STORAGE_STATS_KEY, JSON.stringify(stats), false); }catch(e){ /* best effort */ }
+  }
+
+  // ---------- scoring ----------
+  function scoreRound(guess, actual){
+    if (guess <= 0 || actual <= 0) return 0;
+    const ratio = guess / actual;
+    const diff = Math.abs(Math.log(ratio));
+    const raw = 100 * Math.exp(-0.85 * diff);
+    return Math.max(0, Math.round(raw));
+  }
+  function gradeEmoji(score){
+    if (score >= 85) return "🟩";
+    if (score >= 55) return "🟨";
+    if (score >= 25) return "🟧";
+    return "🟥";
+  }
+  function fmtMoney(n){
+    return n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  // ---------- state ----------
+  const state = { round:0, scores:[], guesses:[], done:false };
+
+  // ---------- DOM refs ----------
+  const dotsEl = document.getElementById("dots");
+  const skinImg = document.getElementById("skinImg");
+  const skeleton = document.getElementById("skeleton");
+  const placeholder = document.getElementById("placeholder");
+  const placeholderGlyph = document.getElementById("placeholderGlyph");
+  const glow = document.getElementById("glow");
+  const itemName = document.getElementById("itemName");
+  const itemWear = document.getElementById("itemWear");
+  const rarityPillWrap = document.getElementById("rarityPillWrap");
+  const guessForm = document.getElementById("guessForm");
+  const guessInput = document.getElementById("guessInput");
+  const lockBtn = document.getElementById("lockBtn");
+  const roundLabel = document.getElementById("roundLabel");
+  const revealBox = document.getElementById("revealBox");
+  const roundScoreEl = document.getElementById("roundScore");
+  const yourGuessVal = document.getElementById("yourGuessVal");
+  const actualVal = document.getElementById("actualVal");
+  const nextBtn = document.getElementById("nextBtn");
+  const gameCard = document.getElementById("gameCard");
+  const summaryCard = document.getElementById("summaryCard");
+  const totalScoreEl = document.getElementById("totalScore");
+  const breakdownList = document.getElementById("breakdownList");
+  const summarySub = document.getElementById("summarySub");
+  const shareBtn = document.getElementById("shareBtn");
+  const countdownEl = document.getElementById("countdown");
+  const streakCountEl = document.getElementById("streakCount");
+  const dayLabel = document.getElementById("dayLabel");
+
+  dayLabel.textContent = "DAILY CHALLENGE · #" + dayIndex;
+  summarySub.textContent = "Day #" + dayIndex;
+
+  function renderDots(){
+    dotsEl.innerHTML = "";
+    for (let i=0;i<ROUNDS;i++){
+      const d = document.createElement("div");
+      d.className = "dot" + (i < state.round ? " done" : (i === state.round ? " current" : ""));
+      dotsEl.appendChild(d);
+    }
+  }
+
+  function renderRound(){
+    renderDots();
+    const r = todaysRounds[state.round];
+    itemName.textContent = r.name;
+    itemWear.textContent = r.wear;
+    rarityPillWrap.innerHTML = "";
+    glow.style.setProperty("--glow-color", "#46536633");
+    guessInput.value = "";
+    guessInput.disabled = false;
+    lockBtn.disabled = false;
+    revealBox.hidden = true;
+    guessForm.hidden = false;
+    roundLabel.textContent = "Round " + (state.round+1) + " of " + ROUNDS;
+
+    if (r.image){
+      skeleton.hidden = true;
+      placeholder.hidden = true;
+      skinImg.src = r.image;
+      skinImg.alt = r.name + " (" + r.wear + ")";
+      skinImg.hidden = false;
+      skinImg.onerror = function(){
+        skinImg.hidden = true;
+        placeholder.hidden = false;
+        placeholderGlyph.textContent = r.name.split(" ")[0];
+      };
+    } else if (imagesUnavailable){
+      skinImg.hidden = true;
+      skeleton.hidden = true;
+      placeholder.hidden = false;
+      placeholderGlyph.textContent = r.name.split(" ")[0];
+    } else {
+      skinImg.hidden = true;
+      placeholder.hidden = true;
+      skeleton.hidden = false;
+    }
+    setTimeout(() => guessInput.focus(), 50);
+  }
+
+  guessForm.addEventListener("submit", function(e){
+    e.preventDefault();
+    const guess = parseFloat(guessInput.value);
+    if (isNaN(guess) || guess < 0) return;
+    const r = todaysRounds[state.round];
+    const score = scoreRound(guess, r.price);
+    state.scores.push(score);
+    state.guesses.push(guess);
+
+    guessInput.disabled = true;
+    lockBtn.disabled = true;
+
+    const rarityColor = r.rarityColor || "#8996a8";
+    glow.style.setProperty("--glow-color", rarityColor + "55");
+    if (r.rarityName){
+      rarityPillWrap.innerHTML = '<span class="rarity-pill" style="--rarity-color:' + rarityColor + '"><span class="sw"></span>' + r.rarityName + '</span>';
+    }
+
+    roundScoreEl.textContent = score;
+    yourGuessVal.textContent = "$" + fmtMoney(guess);
+    actualVal.textContent = "$" + fmtMoney(r.price);
+    revealBox.hidden = false;
+    renderDots();
+  });
+
+  nextBtn.addEventListener("click", async function(){
+    state.round++;
+    if (state.round >= ROUNDS){
+      await finishGame();
+    } else {
+      renderRound();
+    }
+  });
+
+  async function finishGame(){
+    state.done = true;
+    gameCard.hidden = true;
+    summaryCard.hidden = false;
+    renderDots();
+
+    const total = state.scores.reduce((a,b)=>a+b,0);
+    totalScoreEl.textContent = total;
+
+    breakdownList.innerHTML = "";
+    todaysRounds.forEach((r, i) => {
+      const row = document.createElement("div");
+      row.className = "breakdown-row";
+      row.innerHTML =
+        '<span class="grade-emoji">' + gradeEmoji(state.scores[i]) + '</span>' +
+        '<span class="rname">' + r.name + '<br><span class="rprice">Guessed $' + fmtMoney(state.guesses[i]) + ' · actual $' + fmtMoney(r.price) + '</span></span>' +
+        '<span class="rscore">' + state.scores[i] + '</span>';
+      breakdownList.appendChild(row);
+    });
+
+    const stats = await loadStats();
+    if (stats.lastCompletedDay !== dateKey){
+      const prevDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) - 86400000);
+      const wasYesterday = stats.lastCompletedDay === utcDateKey(prevDay);
+      stats.streak = wasYesterday ? stats.streak + 1 : 1;
+      stats.maxStreak = Math.max(stats.maxStreak || 0, stats.streak);
+      stats.lastCompletedDay = dateKey;
+      stats.lastCompletedScore = total;
+      stats.history = stats.history || {};
+      stats.history[dateKey] = total;
+      await saveStats(stats);
+    }
+    streakCountEl.textContent = stats.streak || 0;
+  }
+
+  shareBtn.addEventListener("click", function(){
+    const total = state.scores.reduce((a,b)=>a+b,0);
+    const grid = state.scores.map(gradeEmoji).join("");
+    const text = "Price Check #" + dayIndex + " — " + total + "/500\n" + grid;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(() => {
+        shareBtn.textContent = "Copied!";
+        setTimeout(() => shareBtn.textContent = "Share result", 1600);
+      }).catch(() => fallbackShare(text));
+    } else {
+      fallbackShare(text);
+    }
+  });
+  function fallbackShare(text){
+    window.prompt("Copy your result:", text);
+  }
+
+  function tickCountdown(){
+    const n = new Date();
+    const nextMidnight = Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()+1);
+    let diff = Math.max(0, nextMidnight - n.getTime());
+    const h = String(Math.floor(diff / 3600000)).padStart(2,"0");
+    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2,"0");
+    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2,"0");
+    countdownEl.textContent = h + ":" + m + ":" + s;
+  }
+  setInterval(tickCountdown, 1000);
+  tickCountdown();
+
+  // ---------- init: resume today's progress if already played ----------
+  (async function init(){
+    const stats = await loadStats();
+    streakCountEl.textContent = stats.streak || 0;
+    if (stats.lastCompletedDay === dateKey && typeof stats.lastCompletedScore === "number"){
+      // Already completed today — show summary using last known total,
+      // without per-round guess detail (not persisted to keep storage light).
+      gameCard.hidden = true;
+      summaryCard.hidden = false;
+      totalScoreEl.textContent = stats.lastCompletedScore;
+      breakdownList.innerHTML = '<div class="breakdown-row"><span class="rname">You already played today\'s challenge.</span></div>';
+    } else {
+      renderRound();
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
